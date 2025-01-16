@@ -73,13 +73,13 @@ bot.on("message", async (ctx) => {
     const tgName = ctx.from.username
     const state = userState[tgId];    
     if (state && state.name === '') {  
-        state.name = ctx.message.text!;  
+        state.name = ctx.message.text;  
         await ctx.reply("В каком городе вы живёте?");  
     } else if (state && state.city === '') {  
-        state.city = ctx.message.text!;  
+        state.city = ctx.message.text;  
         await ctx.reply("Сколько вам лет? ");  
     } else if (state && state.age === '') {  
-        state.age = ctx.message.text!;  
+        state.age = ctx.message.text;  
            
         // Сохраняем информацию о пользователе  
         users[tgId] = {  
