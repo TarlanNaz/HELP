@@ -33,7 +33,7 @@ type Topic  = {[id: string]: { id: string; createdAt: Date; title: string; meeti
 type UserMeeting = {[id: string]: { userId: string; meetingId: string}};
 type Meeting ={[id: string]: {createdAt: Date; title : string; date: Date; place: string; meetings : Array<UserMeeting>; topics: Array<Topic>}}
 //type Place = {[id: string]: {name : string; adress : string; meeting: Array<Meeting>}};
-type User = { [id: string]: { name: string; age: number; city: string; tgId:string; tgName: string; networkingPoints: number; countMeetings: number; meetings: Array<Meeting>; } };
+type User = { [id: string]: { name: string; age: string; city: string; tgId:string; tgName: string; networkingPoints: number; countMeetings: number; meetings: Array<Meeting>; } };
 
 
 //const topic: Topic = {}; // Темы встречи
@@ -54,7 +54,7 @@ bot.command("register", (ctx) => {
     const tgId = ctx.from!.id.toString();  
     userState[tgId] = {  
         name : '',
-        age : 0,
+        age : '',
         city : '',
         tgId: '',
         tgName: '',
@@ -70,13 +70,16 @@ bot.on("message", async (ctx) => {
     const tgId = ctx.from.id.toString();
     const tgName = ctx.from.username
     const state = userState[tgId];    
-        state.name = ctx.message.text!; 
-        await ctx.reply("Сколько вам лет?"); 
-        bot.on("message", async (ctx) =>{state.age = Number(ctx.message.text!)});  
-        await ctx.reply("В каком городе вы живёте?"); 
-        bot.on("message", async (ctx) =>{state.city = ctx.message.text!});
+    if (state && state.name === '') {  
+        state.name = ctx.message.text!;  
+        await ctx.reply("В каком городе вы живёте?");  
+    } else if (state && state.city === '') {  
+        state.city = ctx.message.text!;  
+        await ctx.reply("Сколько вам лет? ");  
+    } else if (state && state.age === '') {  
+        state.age = ctx.message.text!;  
+        await ctx.reply("Во сколько вам удобнее встречаться? Напишите время.");  
            
-
         // Сохраняем информацию о пользователе  
         users[tgId] = {  
                 name : state.name,
@@ -89,7 +92,7 @@ bot.on("message", async (ctx) => {
                 meetings: [], 
             };    
           
-
+        }
         // Подтверждение данных  
         await ctx.reply(`Спасибо за регистрацию! Вот ваши данные:\n- Имя: ${users[tgId].name}\n- возраст: ${users[tgId].age}\n- Город: ${users[tgId].city}\n- короткое имя: ${users[tgId].tgName}`);  
         });
