@@ -59,7 +59,7 @@ bot.command("register", (ctx) => {
 
     userState[tgId] = {
         name: "",
-        age: NaN, // Инициализируем как NaN
+        age: '', // Инициализируем как NaN
         city: "",
         tgId,
         tgName,
@@ -90,8 +90,6 @@ bot.on("message", async (ctx) => {
         state.city = messageText;
         await ctx.reply("Сколько вам лет?");
     }if (!state.age) {
-        const age = Number(messageText);
-
         if (Number(messageText) <= 0) {
             await ctx.reply("Пожалуйста, введите корректный возраст (положительное число).");
         } else {
