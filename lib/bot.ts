@@ -1,102 +1,96 @@
-import { Bot } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
-//import { Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
+import { Bot, Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts";
 
-// Создайте экземпляр класса `Bot` и передайте ему токен вашего бота.  
-export const bot = new Bot(Deno.env.get("BOT_TOKEN") || ""); // Убедитесь, что токен установлен  
-
-/*async function PositiveNumber(ctx: Context): Promise<number> {
-    while (true) {
-        // Запрашиваем возраст у пользователя
-        await ctx.reply("Сколько вам лет?");
-
-        // Ожидаем ответа от пользователя
-        bot.on("message", async (ctx) => { 
-            const ageText = ctx.message.text;
-            const age = Number(ageText);
-
-        // Проверяем, что возраст — положительное число
-            if (!isNaN(age) && age > 0) {
-                return age; // Возвращаем возраст, если он корректен
-             } else {
-                await ctx.reply("Введите положительную цифру!");
-        }
-        })
-
-        // Получаем текст сообщения
-        
-
-        // Преобразуем текст в число
-        
-    }
+// Проверка токена
+const BOT_TOKEN = Deno.env.get("BOT_TOKEN");
+if (!BOT_TOKEN) {
+    console.error("Ошибка: токен бота не установлен.");
+    Deno.exit(1);
 }
-*/
-// Состояние пользователя  
-type Topic  = {[id: string]: { id: string; createdAt: Date; title: string; meetingId: string; }} ;
-type UserMeeting = {[id: string]: { userId: string; meetingId: string}};
-type Meeting ={[id: string]: {createdAt: Date; title : string; date: Date; place: string; meetings : Array<UserMeeting>; topics: Array<Topic>}}
-//type Place = {[id: string]: {name : string; adress : string; meeting: Array<Meeting>}};
-type User = { [id: string]: { name: string; age: string; city: string; tgId:string; tgName: string; networkingPoints: number; countMeetings: number; meetings: Array<Meeting>; } };
 
+// Создаём бота
+export const bot = new Bot(BOT_TOKEN);
 
-//const topic: Topic = {}; // Темы встречи
-//const userMeeting: UserMeeting  = {}; // Оценки пользователей по встречам
-//const meeting: Meeting = {}; // Описание встречи
-//const place : Place ={}
-const userState: User = {};  
-const users: User  = {}; // Хранение всех зарегистрированных пользователей  
+// Типы данных
+type User = {
+    name: string;
+    age: string;
+    city: string;
+    tgId: string;
+    tgName: string;
+    networkingPoints: number;
+    countMeetings: number;
+    meetings: Array<any>; // Замените на конкретный тип, если нужно
+};
 
-// Функция для оценки встречи  
+// Состояния пользователей
+const userState: { [id: string]: Partial<User> } = {};
+const users: { [id: string]: User } = {};
 
-// Команды для регистрации  
-bot.command("start", (ctx) => {  
-    ctx.reply("Добро пожаловать! Чтобы начать регистрацию, введите /register.");  
-});  
+// Команда /start
+bot.command("start", (ctx) => {
+    ctx.reply("Добро пожаловать! Чтобы начать регистрацию, введите /register.");
+});
 
-bot.command("register", (ctx) => {  
-    const tgId = ctx.from!.id.toString();  
-    userState[tgId] = {  
-        name : '',
-        age : '',
-        city : '',
-        tgId: '',
-        tgName: '',
+// Команда /register
+bot.command("register", (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const tgName = ctx.from.username || "Anonymous";
+
+    userState[tgId] = {
+        name: "",
+        age: "",
+        city: "",
+        tgId,
+        tgName,
         networkingPoints: 0,
         countMeetings: 0,
-        meetings: [], 
-    };  
-    ctx.reply("Как вас зовут?");  
-});  
+        meetings: [],
+    };
 
-// Обработка всех сообщений  
-bot.on("message", async (ctx) => {  
+    ctx.reply("Как вас зовут?");
+});
+
+// Обработка сообщений
+bot.on("message", async (ctx) => {
     const tgId = ctx.from.id.toString();
-    const tgName = ctx.from.username
-    const state = userState[tgId];    
-    if (state && state.name === '') {  
-        state.name = ctx.message.text!;  
-        await ctx.reply("В каком городе вы живёте?");  
-    } else if (state && state.city === '') {  
-        state.city = ctx.message.text!;  
-        await ctx.reply("Сколько вам лет? ");  
-    } else if (state && state.age === '') {  
-        state.age = ctx.message.text!;  
-           
-        // Сохраняем информацию о пользователе  
-        users[tgId] = {  
-                name : state.name,
-                age : state.age,
-                city : state.city,
-                tgId: tgId,
-                tgName: tgName!,
-                networkingPoints: 0,
-                countMeetings: 0,
-                meetings: [], 
-            };    
-          
-        }
-        // Подтверждение данных  
-        await ctx.reply(`Спасибо за регистрацию! Вот ваши данные:\n- Имя: ${users[tgId].name}\n- возраст: ${users[tgId].age}\n- Город: ${users[tgId].city}\n- короткое имя: ${users[tgId].tgName}`);  
-        });
+    const state = userState[tgId];
+
+    if (!state) {
+        await ctx.reply("Пожалуйста, начните с команды /register.");
+        return;
+    }
+
+    if (!state.name) {
+        state.name = ctx.message.text!;
+        await ctx.reply("В каком городе вы живёте?");
+    } else if (!state.city) {
+        state.city = ctx.message.text!;
+        await ctx.reply("Сколько вам лет?");
+    } else if (!state.age) {
+        state.age = ctx.message.text!;
+
+        // Сохраняем информацию о пользователе
+        users[tgId] = {
+            name: state.name,
+            age: state.age,
+            city: state.city,
+            tgId,
+            tgName: state.tgName,
+            networkingPoints: 0,
+            countMeetings: 0,
+            meetings: [],
+        };
+
+        // Очищаем состояние
+        delete userState[tgId];
+
+        // Подтверждение данных
+        await ctx.reply(`Спасибо за регистрацию! Вот ваши данные:\n- Имя: ${users[tgId].name}\n- Возраст: ${users[tgId].age}\n- Город: ${users[tgId].city}\n- Короткое имя: ${users[tgId].tgName}`);
+    }
+});
+
+// Запуск бота
+
         /*// Ищем совпадения после регистрации  
         await findMatches(userId);  
     } else if (state?.waitingForResponse) {  
