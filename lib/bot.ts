@@ -1,4 +1,4 @@
-import { Bot } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
+import { Bot, Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
 //import { Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
 
 // Создайте экземпляр класса `Bot` и передайте ему токен вашего бота.  
@@ -35,21 +35,94 @@ type Topic  = {[id: string]: { id: string; createdAt: Date; title: string; meeti
 type UserMeeting = {[id: string]: { userId: string; meetingId: string}};
 type Meeting ={[id: string]: {createdAt: Date; title : string; date: Date; place: string; meetings : Array<UserMeeting>; topics: Array<Topic>}}
 //type Place = {[id: string]: {name : string; adress : string; meeting: Array<Meeting>}};
-type User = { [id: string]: { name: string; age: string; city: string; tgId:string; tgName: string; networkingPoints: number; countMeetings: number; meetings: Array<Meeting>; } };
-
+type User = {
+    name: string,
+    age: number,
+    city: string,
+    telegramId: string,
+    telegramUsername: string,
+    networkingPoints: number,
+    meetings: Array<Meeting>
+  }
 
 //const topic: Topic = {}; // Темы встречи
 //const userMeeting: UserMeeting  = {}; // Оценки пользователей по встречам
 //const meeting: Meeting = {}; // Описание встречи
 //const place : Place ={}
 
-/*enum UserState {
-    REGISTRATION_INPUT_USERNAME,
+enum UserState {
+    REGISTRATION_INPUT_NAME,
     REGISTRATION_INPUT_AGE,
     REGISTRATION_INPUT_CITY,
-     };*/ 
+    REGISTRATION_INPUT_TG_ID,
+    REGISTRATION_INPUT_TG_NAME,
+    REGISTRATION_NEWORK_POINTS,
+    REGISTRATION_MEETINGS_COUNT,
+    REGISTRATION_MEETINGS
+     };
 const userState: User = {};  
 const users: User  = {}; // Хранение всех зарегистрированных пользователей  
+const states: Record<string, UserState> = {
+    // ...
+  }
+  
+const users: Record<string, User> = {
+    // ...
+  }
+const stateHandlers: Record<UserState, (ctx: Context) => Promise<void>> = {
+    [UserState.REGISTRATION_INPUT_NAME]: async (ctx) => {
+      const name = ctx.message.text;
+      const tgId = ctx.from.id;
+  
+      if (name && name.length < 64) {
+        users[tgId] =  name ;
+        states[tgId] = UserState.REGISTRATION_INPUT_CITY;
+        await ctx.reply("Отлично! Теперь введите ваш город.");
+      } else {
+        await ctx.reply("Пожалуйста, введите корректное имя и фамилию (до 64 символов).");
+      }
+    },
+  
+    [UserState.REGISTRATION_INPUT_CITY]: async (ctx) => {
+      const city = ctx.message.text;
+      const tgId = ctx.from.id;
+  
+      if (city && city.length < 64) {
+        users[tgId].city = city;
+        states[tgId] = UserState.REGISTRATION_INPUT_AGE;
+        await ctx.reply("Отлично! Теперь введите ваш возраст.");
+      } else {
+        await ctx.reply("Пожалуйста, введите корректный город (до 64 символов).");
+      }
+    },
+  
+    [UserState.REGISTRATION_INPUT_AGE]: async (ctx) => {
+      const ageText = ctx.message.text;
+      const tgId = ctx.from.id;
+      const age = Number(ageText);
+  
+      if (!isNaN(age) && age > 0) {
+        users[tgId].age = age;
+        await ctx.reply("Спасибо за регистрацию! Ваши данные сохранены.");
+        delete states[tgId]; 
+      } else {
+        await ctx.reply("Пожалуйста, введите корректный возраст (положительное число).");
+      }
+    },
+  };
+  
+  // Основная логика обработки сообщений
+  const handleMessage = async (ctx: Context) => {
+    const tgId = ctx.from.id;
+    const currentState = states[tgId];
+  
+    const handler = stateHandlers[currentState];
+    if (handler) {
+      await handler(ctx);
+    } else {
+      await ctx.reply("Пожалуйста, начните с команды /start.");
+    }
+  };
 
 // Функция для оценки встречи  
 
@@ -74,44 +147,8 @@ bot.command("register", (ctx) => {
     ctx.reply("Как вас зовут?");  
 });  
 
-bot.on("message", async (ctx) => {  
-    const tgId = ctx.from.id.toString();
-    const tgName = ctx.from.username;
-    const state = userState[tgId];    
-
-    if (!state) return;
-
-    if (state.name === '') {  
-        state.name = ctx.message.text!;  
-        await ctx.reply("Сколько вам лет?");  
-    } else if (state.age === '') {  
-        state.age = ctx.message.text!;  
-        await ctx.reply("В каком городе вы живёте?");
-    } else if (state.city === '') {  
-        state.city = ctx.message.text!;  
-           
-        // Сохраняем информацию о пользователе  
-        users[tgId] = {  
-            name: state.name,
-            age: state.age,
-            city: state.city,
-            tgId: tgId,
-            tgName: tgName!,
-            networkingPoints: 0,
-            countMeetings: 0,
-            meetings: [], 
-        };    
-          
-        // Подтверждение данных  
-        await ctx.reply(
-            `Спасибо за регистрацию! Вот ваши данные:\n` +
-            `- Имя: ${users[tgId].name}\n` +
-            `- возраст: ${users[tgId].age}\n` +
-            `- Город: ${users[tgId].city}\n` +
-            `- короткое имя: ${users[tgId].tgName}`
-        );
-    }
-});
+bot.on("message", stateHandlers) 
+    
 
 
         /*// Ищем совпадения после регистрации  
