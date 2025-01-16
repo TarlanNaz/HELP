@@ -60,8 +60,7 @@ enum UserState {
     REGISTRATION_MEETINGS_COUNT,
     REGISTRATION_MEETINGS
      };
-const userState: User = {};  
-const users: User  = {}; // Хранение всех зарегистрированных пользователей  
+const userState: User = {};  // Хранение всех зарегистрированных пользователей  
 const states: Record<string, UserState> = {
     // ...
   }
