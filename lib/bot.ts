@@ -42,6 +42,12 @@ type User = { [id: string]: { name: string; age: string; city: string; tgId:stri
 //const userMeeting: UserMeeting  = {}; // Оценки пользователей по встречам
 //const meeting: Meeting = {}; // Описание встречи
 //const place : Place ={}
+
+/*enum UserState {
+    REGISTRATION_INPUT_USERNAME,
+    REGISTRATION_INPUT_AGE,
+    REGISTRATION_INPUT_CITY,
+     };*/ 
 const userState: User = {};  
 const users: User  = {}; // Хранение всех зарегистрированных пользователей  
 
@@ -53,65 +59,59 @@ bot.command("start", (ctx) => {
 });  
 
 
-bot.command("register", (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const tgName = ctx.from.username || "Anonymous";
-
-    userState[tgId] = {
-        name: "",
-        age: '', // Инициализируем как NaN
-        city: "",
-        tgId,
-        tgName,
+bot.command("register", (ctx) => {  
+    const tgId = ctx.from!.id.toString();  
+    userState[tgId] = {  
+        name: '',
+        age: '',
+        city: '',
+        tgId: '',
+        tgName: '',
         networkingPoints: 0,
         countMeetings: 0,
-        meetings: [],
-    };
+        meetings: [], 
+    };  
+    ctx.reply("Как вас зовут?");  
+});  
 
-    ctx.reply("Как вас зовут?");
-});
-
-// Обработка сообщений
-bot.on("message", async (ctx) => {
+bot.on("message", async (ctx) => {  
     const tgId = ctx.from.id.toString();
-    const state = userState[tgId];
+    const tgName = ctx.from.username;
+    const state = userState[tgId];    
 
-    if (!state) {
-        await ctx.reply("Пожалуйста, начните с команды /register.");
-        return;
-    }
+    if (!state) return;
 
-    const messageText = ctx.message.text;
-
-    if (!state.name) {
-        state.name = messageText;
+    if (state.name === '') {  
+        state.name = ctx.message.text!;  
+        await ctx.reply("Сколько вам лет?");  
+    } else if (state.age === '') {  
+        state.age = ctx.message.text!;  
         await ctx.reply("В каком городе вы живёте?");
-    }if (!state.city) {
-        state.city = messageText;
-        await ctx.reply("Сколько вам лет?");
-    }if (!state.age) {
-        state.age = messageText;
-
-            // Сохраняем информацию о пользователе
-        users[tgId] = {
+    } else if (state.city === '') {  
+        state.city = ctx.message.text!;  
+           
+        // Сохраняем информацию о пользователе  
+        users[tgId] = {  
             name: state.name,
             age: state.age,
             city: state.city,
-            tgId,
-            tgName: state.tgName,
+            tgId: tgId,
+            tgName: tgName!,
             networkingPoints: 0,
             countMeetings: 0,
-            meetings: [],
-        };
-
-            // Очищаем состояние
-            delete userState[tgId];
-
-            // Подтверждение данных
-            await ctx.reply(`Спасибо за регистрацию! Вот ваши данные:\n- Имя: ${users[tgId].name}\n- Возраст: ${users[tgId].age}\n- Город: ${users[tgId].city}\n- Короткое имя: ${users[tgId].tgName}`);
-        }
+            meetings: [], 
+        };    
+          
+        // Подтверждение данных  
+        await ctx.reply(
+            `Спасибо за регистрацию! Вот ваши данные:\n` +
+            `- Имя: ${users[tgId].name}\n` +
+            `- возраст: ${users[tgId].age}\n` +
+            `- Город: ${users[tgId].city}\n` +
+            `- короткое имя: ${users[tgId].tgName}`
+        );
     }
-);
+});
 
 
         /*// Ищем совпадения после регистрации  
