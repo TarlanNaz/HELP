@@ -86,16 +86,16 @@ bot.on("message", async (ctx) => {
     if (!state.name) {
         state.name = messageText;
         await ctx.reply("В каком городе вы живёте?");
-    }  if (!state.city) {
+    }if (!state.city) {
         state.city = messageText;
         await ctx.reply("Сколько вам лет?");
-    }  if (isNaN(state.age)) {
+    }if (!state.age) {
         const age = Number(messageText);
 
-        if (isNaN(age) || age <= 0) {
+        if (Number(messageText) <= 0) {
             await ctx.reply("Пожалуйста, введите корректный возраст (положительное число).");
         } else {
-            state.age = age;
+            state.age = messageText;
 
             // Сохраняем информацию о пользователе
             users[tgId] = {
