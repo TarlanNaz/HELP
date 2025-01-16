@@ -1,37 +1,58 @@
-import { Bot, Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts";
+import { Bot } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
+//import { Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
 
-// Проверка токена
-const BOT_TOKEN = Deno.env.get("BOT_TOKEN");
-if (!BOT_TOKEN) {
-    console.error("Ошибка: токен бота не установлен.");
-    Deno.exit(1);
+// Создайте экземпляр класса `Bot` и передайте ему токен вашего бота.  
+export const bot = new Bot(Deno.env.get("BOT_TOKEN") || ""); // Убедитесь, что токен установлен  
+
+/*async function PositiveNumber(ctx: Context): Promise<number> {
+    while (true) {
+        // Запрашиваем возраст у пользователя
+        await ctx.reply("Сколько вам лет?");
+
+        // Ожидаем ответа от пользователя
+        bot.on("message", async (ctx) => { 
+            const ageText = ctx.message.text;
+            const age = Number(ageText);
+
+        // Проверяем, что возраст — положительное число
+            if (!isNaN(age) && age > 0) {
+                return age; // Возвращаем возраст, если он корректен
+             } else {
+                await ctx.reply("Введите положительную цифру!");
+        }
+        })
+
+        // Получаем текст сообщения
+        
+
+        // Преобразуем текст в число
+        
+    }
 }
+*/
+// Состояние пользователя  
+type Topic  = {[id: string]: { id: string; createdAt: Date; title: string; meetingId: string; }} ;
+type UserMeeting = {[id: string]: { userId: string; meetingId: string}};
+type Meeting ={[id: string]: {createdAt: Date; title : string; date: Date; place: string; meetings : Array<UserMeeting>; topics: Array<Topic>}}
+//type Place = {[id: string]: {name : string; adress : string; meeting: Array<Meeting>}};
+type User = { [id: string]: { name: string; age: string; city: string; tgId:string; tgName: string; networkingPoints: number; countMeetings: number; meetings: Array<Meeting>; } };
 
-// Создаём бота
-export const bot = new Bot(BOT_TOKEN);
 
-// Типы данных
-type User = {
-    name: string;
-    age: string;
-    city: string;
-    tgId: string;
-    tgName: string;
-    networkingPoints: number;
-    countMeetings: number;
-    meetings: Array<any>; // Замените на конкретный тип, если нужно
-};
+//const topic: Topic = {}; // Темы встречи
+//const userMeeting: UserMeeting  = {}; // Оценки пользователей по встречам
+//const meeting: Meeting = {}; // Описание встречи
+//const place : Place ={}
+const userState: User = {};  
+const users: User  = {}; // Хранение всех зарегистрированных пользователей  
 
-// Состояния пользователей
-const userState: { [id: string]: Partial<User> } = {};
-const users: { [id: string]: User } = {};
+// Функция для оценки встречи  
 
-// Команда /start
-bot.command("start", (ctx) => {
-    ctx.reply("Добро пожаловать! Чтобы начать регистрацию, введите /register.");
-});
+// Команды для регистрации  
+bot.command("start", (ctx) => {  
+    ctx.reply("Добро пожаловать! Чтобы начать регистрацию, введите /register.");  
+});  
 
-// Команда /register
+
 bot.command("register", (ctx) => {
     const tgId = ctx.from!.id.toString();
     const tgName = ctx.from.username || "Anonymous";
@@ -60,14 +81,16 @@ bot.on("message", async (ctx) => {
         return;
     }
 
+    const messageText = ctx.message.text;
+
     if (!state.name) {
-        state.name = ctx.message.text!;
+        state.name = messageText;
         await ctx.reply("В каком городе вы живёте?");
     } else if (!state.city) {
-        state.city = ctx.message.text!;
+        state.city = messageText;
         await ctx.reply("Сколько вам лет?");
     } else if (!state.age) {
-        state.age = ctx.message.text!;
+        state.age = messageText;
 
         // Сохраняем информацию о пользователе
         users[tgId] = {
@@ -89,7 +112,6 @@ bot.on("message", async (ctx) => {
     }
 });
 
-// Запуск бота
 
         /*// Ищем совпадения после регистрации  
         await findMatches(userId);  
