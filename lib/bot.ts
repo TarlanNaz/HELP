@@ -90,22 +90,19 @@ bot.on("message", async (ctx) => {
         state.city = messageText;
         await ctx.reply("Сколько вам лет?");
     }if (!state.age) {
-        if (Number(messageText) <= 0) {
-            await ctx.reply("Пожалуйста, введите корректный возраст (положительное число).");
-        } else {
-            state.age = messageText;
+        state.age = messageText;
 
             // Сохраняем информацию о пользователе
-            users[tgId] = {
-                name: state.name,
-                age: state.age,
-                city: state.city,
-                tgId,
-                tgName: state.tgName,
-                networkingPoints: 0,
-                countMeetings: 0,
-                meetings: [],
-            };
+        users[tgId] = {
+            name: state.name,
+            age: state.age,
+            city: state.city,
+            tgId,
+            tgName: state.tgName,
+            networkingPoints: 0,
+            countMeetings: 0,
+            meetings: [],
+        };
 
             // Очищаем состояние
             delete userState[tgId];
@@ -114,7 +111,7 @@ bot.on("message", async (ctx) => {
             await ctx.reply(`Спасибо за регистрацию! Вот ваши данные:\n- Имя: ${users[tgId].name}\n- Возраст: ${users[tgId].age}\n- Город: ${users[tgId].city}\n- Короткое имя: ${users[tgId].tgName}`);
         }
     }
-});
+);
 
 
         /*// Ищем совпадения после регистрации  
