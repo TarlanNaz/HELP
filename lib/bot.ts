@@ -1,9 +1,10 @@
-import { Bot,Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts";  
+import { Bot } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
+//import { Context } from "https://deno.land/x/grammy@v1.32.0/mod.ts"; 
 
 // Создайте экземпляр класса `Bot` и передайте ему токен вашего бота.  
 export const bot = new Bot(Deno.env.get("BOT_TOKEN") || ""); // Убедитесь, что токен установлен  
 
-async function PositiveNumber(ctx: Context): Promise<number> {
+/*async function PositiveNumber(ctx: Context): Promise<number> {
     while (true) {
         // Запрашиваем возраст у пользователя
         await ctx.reply("Сколько вам лет?");
@@ -28,6 +29,7 @@ async function PositiveNumber(ctx: Context): Promise<number> {
         
     }
 }
+*/
 // Состояние пользователя  
 type Topic  = {[id: string]: { id: string; createdAt: Date; title: string; meetingId: string; }} ;
 type UserMeeting = {[id: string]: { userId: string; meetingId: string}};
@@ -78,7 +80,6 @@ bot.on("message", async (ctx) => {
         await ctx.reply("Сколько вам лет? ");  
     } else if (state && state.age === '') {  
         state.age = ctx.message.text!;  
-        await ctx.reply("Во сколько вам удобнее встречаться? Напишите время.");  
            
         // Сохраняем информацию о пользователе  
         users[tgId] = {  
