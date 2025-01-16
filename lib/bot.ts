@@ -70,10 +70,12 @@ bot.on("message", async (ctx) => {
     const tgId = ctx.from.id.toString();
     const tgName = ctx.from.username
     const state = userState[tgId];    
-        state.name = ctx.message.text!;  
-        state.age = Number(PositiveNumber(ctx));  
-        await ctx.reply("В каком городе вы живёте?");  
-        state.city = ctx.message.text!;   
+        state.name = ctx.message.text!; 
+        await ctx.reply("Сколько вам лет?"); 
+        bot.on("message", async (ctx) =>{state.age = Number(ctx.message.text!)});  
+        await ctx.reply("В каком городе вы живёте?"); 
+        bot.on("message", async (ctx) =>{state.city = ctx.message.text!});
+           
 
         // Сохраняем информацию о пользователе  
         users[tgId] = {  
