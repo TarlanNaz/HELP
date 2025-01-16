@@ -59,7 +59,7 @@ bot.command("register", (ctx) => {
 
     userState[tgId] = {
         name: "",
-        age: "",
+        age: NaN, // Инициализируем как NaN
         city: "",
         tgId,
         tgName,
@@ -89,26 +89,32 @@ bot.on("message", async (ctx) => {
     } else if (!state.city) {
         state.city = messageText;
         await ctx.reply("Сколько вам лет?");
-    } else if (!state.age) {
-        state.age = messageText;
+    } else if (isNaN(state.age)) {
+        const age = Number(messageText);
 
-        // Сохраняем информацию о пользователе
-        users[tgId] = {
-            name: state.name,
-            age: state.age,
-            city: state.city,
-            tgId,
-            tgName: state.tgName,
-            networkingPoints: 0,
-            countMeetings: 0,
-            meetings: [],
-        };
+        if (isNaN(age) || age <= 0) {
+            await ctx.reply("Пожалуйста, введите корректный возраст (положительное число).");
+        } else {
+            state.age = age;
 
-        // Очищаем состояние
-        delete userState[tgId];
+            // Сохраняем информацию о пользователе
+            users[tgId] = {
+                name: state.name,
+                age: state.age,
+                city: state.city,
+                tgId,
+                tgName: state.tgName,
+                networkingPoints: 0,
+                countMeetings: 0,
+                meetings: [],
+            };
 
-        // Подтверждение данных
-        await ctx.reply(`Спасибо за регистрацию! Вот ваши данные:\n- Имя: ${users[tgId].name}\n- Возраст: ${users[tgId].age}\n- Город: ${users[tgId].city}\n- Короткое имя: ${users[tgId].tgName}`);
+            // Очищаем состояние
+            delete userState[tgId];
+
+            // Подтверждение данных
+            await ctx.reply(`Спасибо за регистрацию! Вот ваши данные:\n- Имя: ${users[tgId].name}\n- Возраст: ${users[tgId].age}\n- Город: ${users[tgId].city}\n- Короткое имя: ${users[tgId].tgName}`);
+        }
     }
 });
 
