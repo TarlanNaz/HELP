@@ -86,10 +86,10 @@ bot.on("message", async (ctx) => {
     if (!state.name) {
         state.name = messageText;
         await ctx.reply("В каком городе вы живёте?");
-    } else if (!state.city) {
+    }  if (!state.city) {
         state.city = messageText;
         await ctx.reply("Сколько вам лет?");
-    } else if (isNaN(state.age)) {
+    }  if (isNaN(state.age)) {
         const age = Number(messageText);
 
         if (isNaN(age) || age <= 0) {
